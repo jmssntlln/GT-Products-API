@@ -1,19 +1,21 @@
 import express from 'express';
+import morgan from 'morgan'; 
 import postRoutes from './src/routes/post.routes.js';
-import commentRoutes from './src/routes/comment.routes.js';
-
-dotenv.config();
+import config from './src/config/index.js';
 
 const app = express();
 
-const port = process.env.PORT || 3000;
+if (config.nodeEnv === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined')); 
+}
 
 app.use(express.json());
-
 app.use('/posts', postRoutes);
 
-app.use('/comments', commentRoutes);
-
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(config.port, () => {
+  console.log(
+    `Server is running on http://localhost:${config.port} in ${config.nodeEnv} mode`
+  );
 });
