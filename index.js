@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan'; 
 import postRoutes from './src/routes/post.routes.js';
 import config from './src/config/index.js';
+import { errorHandler } from './src/middlewares/errorHandler.middleware.js';
 
 const app = express();
 
@@ -13,6 +14,7 @@ if (config.nodeEnv === 'development') {
 
 app.use(express.json());
 app.use('/posts', postRoutes);
+app.use(errorHandler);
 
 app.listen(config.port, () => {
   console.log(

@@ -1,51 +1,58 @@
 import * as postService from '../services/post.service.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import asyncHandler from 'express-async-handler';
 
-export const getAllPosts = (req, res) => {
-    const posts = postService.getAllPosts();
-    res.json(posts);
-};
 
-export const getPostById = (req, res) => {
+export const getAllPosts = asyncHandler(async (req, res) => {
+    const posts = await postService.getAllPosts();
+    res.status(200).json(new ApiResponse(200, posts, "Posts retrieved successfully"));
+});
+
+
+export const getPostById = asyncHandler(async (req, res) => {
     const postId = parseInt(req.params.id, 10);
-    const post = postService.getPostById(postId);
-    if (!post) {
-        return res.status(404).json({ message: 'Post not found.' });
-    }
-    res.json(post);
-};
+    const post = await postService.getPostById(postId);
+    res.status(200).json(new ApiResponse(200, post, "Post retrieved successfully"));
+});
 
-export const createPost = (req, res) => {
-    const { title, content } = req.body;
-    if (!title || !content) {
-        return res.status(400).json({ message: 'Title and content are required.' });
-    }
-    const newPost = postService.createPost({ title, content });
-    res.status(201).json(newPost);
-};
 
-export const updatePost = (req, res) => {
+export const createPost = asyncHandler(async (req, res) => {
+    const newPost = await postService.createPost(req.body);
+    res.status(201).json(new ApiResponse(201, newPost, "Post created successfully"));
+});
+
+
+export const updatePost = asyncHandler(async (req, res) => {
     const postId = parseInt(req.params.id, 10);
-    const post = postService.updatePost(postId, req.body);
-    if (!post) {
-        return res.status(404).json({ message: 'Post not found.' });
-    }
-    res.json(post);
-};
+    const updatedPost = await postService.updatePost(postId, req.body);
 
-export const deletePost = (req, res) => {
+    if (!updatedPost) {
+        return res.status(404).json(new ApiResponse(404, null, "Post not found"));
+    }
+
+    res.status(200).json(new ApiResponse(200, updatedPost, "Post updated successfully"));
+});
+
+// PARTIAL UPDATE a post (PATCH)
+export const patchPost = asyncHandler(async (req, res) => {
     const postId = parseInt(req.params.id, 10);
-    const success = postService.deletePost(postId);
+    const patchedPost = await postService.partiallyUpdatePost(postId, req.body);
+
+    if (!patchedPost) {
+        return res.status(404).json(new ApiResponse(404, null, "Post not found"));
+    }
+
+    res.status(200).json(new ApiResponse(200, patchedPost, "Post patched successfully"));
+});
+
+
+export const deletePost = asyncHandler(async (req, res) => {
+    const postId = parseInt(req.params.id, 10);
+    const success = await postService.deletePost(postId);
+
     if (!success) {
-        return res.status(404).json({ message: 'Post not found.' });
+        return res.status(404).json(new ApiResponse(404, null, "Post not found"));
     }
-    res.status(204).send();
-};
 
-export const patchPost = (req, res) => {
-        const postId = parseInt(req.params.id, 10);
-    const post = postService.updatePost(postId, req.body);
-    if (!post) {
-        return res.status(404).json({ message: 'Post not found.' });
-    }
-    res.json(post);
-};
+    res.status(204).json(new ApiResponse(204, null, "Post deleted successfully"));
+});
