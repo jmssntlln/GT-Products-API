@@ -1,21 +1,16 @@
 import express from 'express';
-import morgan from 'morgan'; 
 import postRoutes from './src/routes/post.routes.js';
-import config from './src/config/index.js';
+import { testConnection } from './src/config/db.js'; // Import the test function
 
 const app = express();
-
-if (config.nodeEnv === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined')); 
-}
+const port = 3000;
 
 app.use(express.json());
+
+// Mount the post routes
 app.use('/posts', postRoutes);
 
-app.listen(config.port, () => {
-  console.log(
-    `Server is running on http://localhost:${config.port} in ${config.nodeEnv} mode`
-  );
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+    testConnection(); // Test the database connection on startup
 });
