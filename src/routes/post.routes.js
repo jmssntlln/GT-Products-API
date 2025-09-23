@@ -5,16 +5,12 @@ import { validatePost } from '../middlewares/validator.middleware.js';
 
 const router = Router();
 
-
 router.get('/', postController.getAllPosts);
 router.post('/', validatePost, postController.createPost);
 router.get('/:id', postController.getPostById);
-router.put('/:id', postController.updatePost);   
-router.patch('/:id', postController.patchPost); 
+router.put('/:id', postController.updatePost);
+router.patch('/:id', postController.patchPost);
 router.delete('/:id', postController.deletePost);
-
-
-router.get('/:postId/comments', commentController.getCommentsByPostId);
-router.post('/:postId/comments', commentController.createCommentForPost);
+router.get('/:postId/comments', commentController.getCommentsByPost);
 
 export default router;

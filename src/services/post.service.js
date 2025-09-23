@@ -1,88 +1,121 @@
 import { ApiError } from '../utils/ApiError.js';
 import { pool } from '../config/db.js';
 
-
 export const getAllPosts = async () => {
-    const [rows] = await pool.query('SELECT * FROM posts');
+   
+    const query = `
+        SELECT 
+            p.id,
+            p.title,
+            p.content,
+            p.authorId,
+            p.createdAt,
+            p.updatedAt,
+            u.username AS authorUsername,
+            u.email AS authorEmail
+        FROM posts p
+        JOIN users u ON p.authorId = u.id
+        ORDER BY p.createdAt DESC
+    `;
+    const [rows] = await pool.query(query);
     return rows;
 };
 
-
 export const getPostById = async (id) => {
-    const [rows] = await pool.query('SELECT * FROM posts WHERE id = ?', [id]);
+    
+    const query = `
+        SELECT 
+            p.id,
+            p.title,
+            p.content,
+            p.authorId,
+            p.createdAt,
+            p.updatedAt,
+            u.username AS authorUsername,
+            u.email AS authorEmail
+        FROM posts p
+        JOIN users u ON p.authorId = u.id
+        WHERE p.id = ?
+    `;
+    const [rows] = await pool.query(query, [id]);
     if (!rows[0]) {
         throw new ApiError(404, "Post not found");
     }
     return rows[0];
 };
 
-
 export const createPost = async (postData) => {
-    const { title, content } = postData;
-    if (!title || !content) {
-        throw new ApiError(400, "Title and content are required");
+    const { title, content, authorId } = postData;
+    
+    if (!title || !content || !authorId) {
+        throw new ApiError(400, "Title, content, and author ID are required");
     }
-
-    const [result] = await pool.query(
-        'INSERT INTO posts (title, content) VALUES (?, ?)',
-        [title, content]
-    );
-
-    return { id: result.insertId, title, content };
+    
+    try {
+       
+        const [result] = await pool.query(
+            'INSERT INTO posts (title, content, authorId) VALUES (?, ?, ?)',
+            [title, content, authorId]
+        );
+        
+      
+        return await getPostById(result.insertId);
+    } catch (error) {
+       
+        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+            throw new ApiError(400, 'Invalid author ID. User does not exist');
+        }
+        throw error;
+    }
 };
-
 
 export const updatePost = async (id, postData) => {
     const { title, content } = postData;
     const [result] = await pool.query(
-        'UPDATE posts SET title = ?, content = ? WHERE id = ?',
+        'UPDATE posts SET title = ?, content = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
         [title, content, id]
     );
-
     if (result.affectedRows === 0) {
         throw new ApiError(404, "Post not found");
     }
-
     return getPostById(id);
 };
-
 
 export const partiallyUpdatePost = async (id, updates) => {
     const fields = [];
     const values = [];
-
+    
     for (const key in updates) {
         if (['title', 'content'].includes(key)) {
             fields.push(`${key} = ?`);
             values.push(updates[key]);
         }
     }
-
+    
     if (fields.length === 0) {
         throw new ApiError(400, "No valid fields provided for update");
     }
-
+    
+  
+    fields.push('updatedAt = CURRENT_TIMESTAMP');
     values.push(id);
-
+    
     const [result] = await pool.query(
         `UPDATE posts SET ${fields.join(', ')} WHERE id = ?`,
         values
     );
-
+    
     if (result.affectedRows === 0) {
         throw new ApiError(404, "Post not found");
     }
-
+    
     return getPostById(id);
 };
 
-
 export const deletePost = async (id) => {
     const [result] = await pool.query('DELETE FROM posts WHERE id = ?', [id]);
-
     if (result.affectedRows === 0) {
         throw new ApiError(404, "Post not found");
     }
-
     return true;
 };

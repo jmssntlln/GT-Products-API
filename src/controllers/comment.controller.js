@@ -1,29 +1,51 @@
-import * as commentService from '../services/comment.service.js';
+import { commentService } from '../services/comment.service.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import asyncHandler from 'express-async-handler';
 
-export const getAllComments = (req, res) => {
-    const comments = commentService.getAllComments();
-    res.json(comments);
-};
+export const createComment = asyncHandler(async (req, res) => {
+    const comment = await commentService.createComment(req.body);
+    
+    res.status(201).json(
+        new ApiResponse(201, comment, 'Comment created successfully')
+    );
+});
 
-export const getCommentsByPostId = (req, res) => {
-    const postId = parseInt(req.params.postId, 10);
-    const comments = commentService.getCommentsByPostId(postId);
-    res.json(comments);
-};
+export const getCommentById = asyncHandler(async (req, res) => {
+    const comment = await commentService.getCommentById(req.params.id);
+    
+    res.status(200).json(
+        new ApiResponse(200, comment, 'Comment retrieved successfully')
+    );
+});
 
-export const createCommentForPost = (req, res) => {
-    const postId = parseInt(req.params.postId, 10);
-    const { text } = req.body;
+export const getAllComments = asyncHandler(async (req, res) => {
+    const comments = await commentService.getAllComments();
+    
+    res.status(200).json(
+        new ApiResponse(200, comments, 'Comments retrieved successfully')
+    );
+});
 
-    if (!text) {
-        return res.status(400).json({ message: 'Comment text is required.' });
-    }
+export const getCommentsByPost = asyncHandler(async (req, res) => {
+    const comments = await commentService.getCommentsByPostId(req.params.postId);
+    
+    res.status(200).json(
+        new ApiResponse(200, comments, 'Post comments retrieved successfully')
+    );
+});
 
-    const newComment = commentService.createComment(postId, { text });
+export const updateComment = asyncHandler(async (req, res) => {
+    const comment = await commentService.updateComment(req.params.id, req.body);
+    
+    res.status(200).json(
+        new ApiResponse(200, comment, 'Comment updated successfully')
+    );
+});
 
-    if (!newComment) {
-        return res.status(404).json({ message: 'Post not found.' });
-    }
-
-    res.status(201).json(newComment);
-};
+export const deleteComment = asyncHandler(async (req, res) => {
+    const result = await commentService.deleteComment(req.params.id);
+    
+    res.status(200).json(
+        new ApiResponse(200, result, 'Comment deleted successfully')
+    );
+});
