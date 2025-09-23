@@ -3,15 +3,15 @@ import { ApiError } from '../utils/ApiError.js';
 
 class CommentService {
     async createComment(commentData) {
-        const { content, postId, authorId } = commentData;
+        const { text, postId, authorId } = commentData;
         
         try {
             const query = `
-                INSERT INTO comments (content, postId, authorId) 
+                INSERT INTO comments (text, postId, authorId) 
                 VALUES (?, ?, ?)
             `;
             
-            const [result] = await pool.execute(query, [content, postId, authorId]);
+            const [result] = await pool.execute(query, [text, postId, authorId]);
             
             // Fetch and return the newly created comment with author info
             return await this.getCommentById(result.insertId);
@@ -28,7 +28,7 @@ class CommentService {
         const query = `
             SELECT 
                 c.id,
-                c.content,
+                c.text,
                 c.postId,
                 c.authorId,
                 c.createdAt,
@@ -55,7 +55,7 @@ class CommentService {
         const query = `
             SELECT 
                 c.id,
-                c.content,
+                c.text,
                 c.postId,
                 c.authorId,
                 c.createdAt,
@@ -77,7 +77,7 @@ class CommentService {
         const query = `
             SELECT 
                 c.id,
-                c.content,
+                c.text,
                 c.postId,
                 c.authorId,
                 c.createdAt,
@@ -98,15 +98,15 @@ class CommentService {
         // First check if comment exists
         await this.getCommentById(id);
         
-        const { content } = commentData;
+        const { text } = commentData;
         
         const query = `
             UPDATE comments 
-            SET content = ?, updatedAt = CURRENT_TIMESTAMP 
+            SET text = ?, updatedAt = CURRENT_TIMESTAMP 
             WHERE id = ?
         `;
         
-        await pool.execute(query, [content, id]);
+        await pool.execute(query, [text, id]);
         
         // Return the updated comment
         return await this.getCommentById(id);

@@ -27,8 +27,9 @@ export const getAllComments = asyncHandler(async (req, res) => {
 });
 
 export const getCommentsByPost = asyncHandler(async (req, res) => {
-    const comments = await commentService.getCommentsByPostId(req.params.postId);
-    
+    const postId = parseInt(req.params.postId, 10);
+    const comments = await commentService.getCommentsByPostId(postId);
+
     res.status(200).json(
         new ApiResponse(200, comments, 'Post comments retrieved successfully')
     );
@@ -48,4 +49,14 @@ export const deleteComment = asyncHandler(async (req, res) => {
     res.status(200).json(
         new ApiResponse(200, result, 'Comment deleted successfully')
     );
+});
+
+export const createCommentForPost = asyncHandler(async (req, res) => {
+  const postId = parseInt(req.params.postId, 10);
+  const { text, authorId } = req.body;
+  
+  const comment = await commentService.createComment({ text, postId, authorId });
+  res.status(201).json(
+    new ApiResponse(201, comment, 'Comment created successfully')
+  );
 });
