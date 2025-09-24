@@ -33,7 +33,6 @@ export const updatePost = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, updatedPost, "Post updated successfully"));
 });
 
-// PARTIAL UPDATE a post (PATCH)
 export const patchPost = asyncHandler(async (req, res) => {
     const postId = parseInt(req.params.id, 10);
     const patchedPost = await postService.partiallyUpdatePost(postId, req.body);
