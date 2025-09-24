@@ -26,7 +26,6 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     );
 });
 
-// Challenge 1: Get posts by a specific user
 export const getPostsByUser = asyncHandler(async (req, res) => {
     const posts = await userService.getPostsByAuthorId(req.params.userId);
     

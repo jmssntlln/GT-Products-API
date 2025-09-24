@@ -13,10 +13,9 @@ class UserService {
             
             const [result] = await pool.execute(query, [username, email]);
             
-            // Fetch and return the newly created user
             return await this.getUserById(result.insertId);
         } catch (error) {
-            // Handle duplicate entry error (username or email already exists)
+            
             if (error.code === 'ER_DUP_ENTRY') {
                 throw new ApiError(409, 'Username or email already exists');
             }
@@ -41,9 +40,9 @@ class UserService {
         return rows;
     }
 
-    // Challenge 1: Get posts by a specific author
+    
     async getPostsByAuthorId(userId) {
-        // First verify the user exists
+     
         await this.getUserById(userId);
         
         const query = `

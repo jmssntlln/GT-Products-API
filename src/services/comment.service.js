@@ -12,11 +12,8 @@ class CommentService {
             `;
             
             const [result] = await pool.execute(query, [text, postId, authorId]);
-            
-            // Fetch and return the newly created comment with author info
             return await this.getCommentById(result.insertId);
         } catch (error) {
-            // Handle foreign key constraint errors
             if (error.code === 'ER_NO_REFERENCED_ROW_2') {
                 throw new ApiError(400, 'Invalid post ID or author ID. Post or user does not exist');
             }
@@ -95,7 +92,7 @@ class CommentService {
     }
 
     async updateComment(id, commentData) {
-        // First check if comment exists
+        
         await this.getCommentById(id);
         
         const { text } = commentData;
@@ -108,12 +105,12 @@ class CommentService {
         
         await pool.execute(query, [text, id]);
         
-        // Return the updated comment
+        
         return await this.getCommentById(id);
     }
 
     async deleteComment(id) {
-        // First check if comment exists
+    
         await this.getCommentById(id);
         
         const query = `DELETE FROM comments WHERE id = ?`;
