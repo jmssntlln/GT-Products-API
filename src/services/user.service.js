@@ -1,14 +1,15 @@
 import { pool } from '../config/db.js';
 import { ApiError } from '../utils/ApiError.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 class UserService {
-  // Registration method with password hashing
+  
   async registerUser(userData) {
     const { username, email, password } = userData;
     try {
-      // HASH THE PASSWORD
-      const saltRounds = 10; // The cost factor for hashing
+    
+      const saltRounds = 10; 
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       const query = `
@@ -17,7 +18,6 @@ class UserService {
       `;
       const [result] = await pool.execute(query, [username, email, hashedPassword]);
       
-      // Return user without password
       return await this.getUserById(result.insertId);
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
@@ -27,8 +27,6 @@ class UserService {
     }
   }
 
-  // Legacy method - kept for backward compatibility (if needed)
-  // Consider removing this if all registration goes through registerUser
   async createUser(userData) {
     const { username, email } = userData;
     try {
@@ -47,7 +45,7 @@ class UserService {
   }
 
   async getUserById(id) {
-    // IMPORTANT: Exclude the password hash when fetching user data
+    
     const query = `SELECT id, username, email, createdAt FROM users WHERE id = ?`;
     const [rows] = await pool.execute(query, [id]);
     if (rows.length === 0) {
@@ -57,13 +55,13 @@ class UserService {
   }
 
   async getAllUsers() {
-    // IMPORTANT: Exclude the password hash here too
+    
     const query = `SELECT id, username, email, createdAt FROM users ORDER BY createdAt DESC`;
     const [rows] = await pool.execute(query);
     return rows;
   }
 
-  // Helper method to get user WITH password (for authentication)
+  
   async getUserByEmailWithPassword(email) {
     const query = `SELECT id, username, email, password, createdAt FROM users WHERE email = ?`;
     const [rows] = await pool.execute(query, [email]);
@@ -94,6 +92,33 @@ class UserService {
     return rows;
   }
 }
+
+export const loginUser = async (loginData) => {
+    const { email, password } = loginData;
+
+    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (rows.length === 0) {
+        throw new ApiError(401, "Invalid credentials"); 
+    }
+    const user = rows[0];
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+        throw new ApiError(401, "Invalid credentials"); 
+    }
+
+    const payload = {
+        id: user.id,
+        username: user.username,
+        email: user.email
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: '1h' 
+    });
+
+    return token;
+};
 
 const userService = new UserService();
 export { userService };

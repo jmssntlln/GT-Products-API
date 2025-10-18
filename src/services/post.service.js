@@ -44,22 +44,15 @@ export const getPostById = async (id) => {
     return rows[0];
 };
 
-export const createPost = async (postData) => {
-    const { title, content, authorId } = postData;
-    
-    if (!title || !content || !authorId) {
-        throw new ApiError(400, "Title, content, and author ID are required");
-    }
-    
+export const createPost = async (postData, authorId) => {
+    const { title, content } = postData;
     try {
-       
         const [result] = await pool.query(
             'INSERT INTO posts (title, content, authorId) VALUES (?, ?, ?)',
-            [title, content, authorId]
+            [title, content, authorId] 
         );
-        
-      
-        return await getPostById(result.insertId);
+        const newPost = await getPostById(result.insertId);
+        return newPost;
     } catch (error) {
        
         if (error.code === 'ER_NO_REFERENCED_ROW_2') {
