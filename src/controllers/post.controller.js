@@ -21,18 +21,6 @@ export const getPostById = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, post, "Post retrieved successfully"));
 });
 
-
-export const updatePost = asyncHandler(async (req, res) => {
-    const postId = parseInt(req.params.id, 10);
-    const updatedPost = await postService.updatePost(postId, req.body);
-
-    if (!updatedPost) {
-        return res.status(404).json(new ApiResponse(404, null, "Post not found"));
-    }
-
-    res.status(200).json(new ApiResponse(200, updatedPost, "Post updated successfully"));
-});
-
 export const patchPost = asyncHandler(async (req, res) => {
     const postId = parseInt(req.params.id, 10);
     const patchedPost = await postService.partiallyUpdatePost(postId, req.body);
@@ -45,13 +33,19 @@ export const patchPost = asyncHandler(async (req, res) => {
 });
 
 
+export const updatePost = asyncHandler(async (req, res) => {
+    const postId = parseInt(req.params.id, 10);
+    const postData = req.body;
+    const userId = req.user.id; // Get the user ID from the middleware
+
+    const updatedPost = await postService.updatePost(postId, postData, userId);
+    res.status(200).json(new ApiResponse(200, updatedPost, "Post updated successfully"));
+});
+
 export const deletePost = asyncHandler(async (req, res) => {
     const postId = parseInt(req.params.id, 10);
-    const success = await postService.deletePost(postId);
+    const userId = req.user.id; // Get the user ID from the middleware
 
-    if (!success) {
-        return res.status(404).json(new ApiResponse(404, null, "Post not found"));
-    }
-
-    res.status(204).json(new ApiResponse(204, null, "Post deleted successfully"));
+    await postService.deletePost(postId, userId);
+    res.status(200).json(new ApiResponse(200, null, "Post deleted successfully"));
 });
